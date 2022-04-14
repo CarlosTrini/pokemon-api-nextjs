@@ -12,14 +12,14 @@ import { Layout } from "../../components/layouts";
 
 import { localFavorites } from "../../utils";
 
-interface PokemonOptI{
-  name: string,
-  id: number,
-  image: string,
-  imageFrontSprite: string,
-  imageBackSprite: string,
-  imageFrontShiny: string,
-  imageBackShiny: string
+interface PokemonOptI {
+  name: string;
+  id: number;
+  image: string;
+  imageFrontSprite: string;
+  imageBackSprite: string;
+  imageFrontShiny: string;
+  imageBackShiny: string;
 }
 
 interface Props {
@@ -60,10 +60,7 @@ const PokemonPage: NextPage<Props> = ({ pokemon }) => {
             <Card hoverable css={{ padding: "30px" }}>
               <Card.Body>
                 <Card.Image
-                  src={
-                    pokemon.image ||
-                    "/no-image.png"
-                  }
+                  src={pokemon.image || "/no-image.png"}
                   alt={pokemon.name}
                   width="100%"
                   height={200}
@@ -135,7 +132,8 @@ export const getStaticPaths: GetStaticPaths = async (context) => {
 
   return {
     paths: pokemons151Names.map((name) => ({ params: { name } })), // {params : {name: name}}
-    fallback: false,
+    // fallback: false,
+    fallback: "blocking",
   };
 };
 
@@ -143,6 +141,16 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
   const { name } = params as { name: string };
 
   const { data } = await pokeApi.get<PokemonI>(`/pokemon/${name}`);
+
+  if (!data) {
+    return {
+      redirect: {
+        destination: "/",
+        permanent: false
+      },
+    };
+  }
+
   const dataOptimized = {
     name: data.name,
     id: data.id,
@@ -157,5 +165,6 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
     props: {
       pokemon: dataOptimized,
     },
+    revalidate: 86400, // 60 * 60 * 24 = 1día
   };
 };
